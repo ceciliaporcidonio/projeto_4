@@ -1,10 +1,11 @@
 package com.seu_projeto.produto.dao;
 
 import com.seu_projeto.produto.Produto;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
 
 public class ProdutoDAOJPA implements IProdutoDAO {
@@ -16,11 +17,28 @@ public class ProdutoDAOJPA implements IProdutoDAO {
     }
 
     @Override
-    public void cadastrar(Produto produto) {
+    public Produto consultarPorCodigo(String codigoProduto) {
+        EntityManager em = getEntityManager();
+        try {
+            TypedQuery<Produto> query = em.createQuery("SELECT p FROM Produto p WHERE p.codigoProduto = :codigoProduto", Produto.class);
+            query.setParameter("codigoProduto", codigoProduto);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public void excluir(String codigoProduto) {
         EntityManager em = getEntityManager();
         try {
             em.getTransaction().begin();
-            em.persist(produto);
+            Produto produto = consultarPorCodigo(codigoProduto);
+            if (produto != null) {
+                em.remove(em.contains(produto) ? produto : em.merge(produto));
+            }
             em.getTransaction().commit();
         } finally {
             em.close();
@@ -28,12 +46,11 @@ public class ProdutoDAOJPA implements IProdutoDAO {
     }
 
     @Override
-    public Produto buscarPorDescricao(String descricao) {
+    public List<Produto> listarTodos() {
         EntityManager em = getEntityManager();
         try {
-            TypedQuery<Produto> query = em.createQuery("SELECT p FROM Produto p WHERE p.descricao = :descricao", Produto.class);
-            query.setParameter("descricao", descricao);
-            return query.getSingleResult();
+            TypedQuery<Produto> query = em.createQuery("SELECT p FROM Produto p", Produto.class);
+            return query.getResultList();
         } finally {
             em.close();
         }
@@ -51,27 +68,16 @@ public class ProdutoDAOJPA implements IProdutoDAO {
         }
     }
 
+    // Implementação do método 'buscarPorDescricao'
     @Override
-    public void excluir(String codigoProduto) {
+    public Produto buscarPorDescricao(String descricao) {
         EntityManager em = getEntityManager();
         try {
-            em.getTransaction().begin();
-            Produto produto = buscarPorDescricao(codigoProduto);
-            if (produto != null) {
-                em.remove(em.contains(produto) ? produto : em.merge(produto));
-            }
-            em.getTransaction().commit();
-        } finally {
-            em.close();
-        }
-    }
-
-    @Override
-    public List<Produto> listarTodos() {
-        EntityManager em = getEntityManager();
-        try {
-            TypedQuery<Produto> query = em.createQuery("SELECT p FROM Produto p", Produto.class);
-            return query.getResultList();
+            TypedQuery<Produto> query = em.createQuery("SELECT p FROM Produto p WHERE p.descricao = :descricao", Produto.class);
+            query.setParameter("descricao", descricao);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }

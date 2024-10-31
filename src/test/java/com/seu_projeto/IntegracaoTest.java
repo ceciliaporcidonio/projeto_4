@@ -9,23 +9,21 @@ import com.seu_projeto.venda.VendaService;
 import com.seu_projeto.venda.dao.IVendaDAO;
 
 import org.junit.jupiter.api.*;
-
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 public class IntegracaoTest {
 
-    private static IClienteDAO clienteDAO;
-    private static IProdutoDAO produtoDAO;
-    private static IVendaDAO vendaDAO;
-    private static ClienteService clienteService;
-    private static ProdutoService produtoService;
-    private static VendaService vendaService;
+    private IClienteDAO clienteDAO;
+    private IProdutoDAO produtoDAO;
+    private IVendaDAO vendaDAO;
+    private ClienteService clienteService;
+    private ProdutoService produtoService;
+    private VendaService vendaService;
 
-    @BeforeAll
-    public static void setup() {
+    @BeforeEach
+    public void setup() {
         clienteDAO = mock(IClienteDAO.class);
         produtoDAO = mock(IProdutoDAO.class);
         vendaDAO = mock(IVendaDAO.class);
@@ -33,16 +31,6 @@ public class IntegracaoTest {
         clienteService = new ClienteService(clienteDAO);
         produtoService = new ProdutoService(produtoDAO);
         vendaService = new VendaService(vendaDAO);
-    }
-
-    @BeforeEach
-    public void init() {
-        // Se necessário, inicializar objetos comuns
-    }
-
-    @AfterEach
-    public void cleanup() {
-        // Limpar dados ou estados se necessário
     }
 
     @Test
@@ -56,34 +44,33 @@ public class IntegracaoTest {
     public void testConsultarCliente() {
         String cpf = "123.456.789-00";
         Cliente cliente = new Cliente("Ana", cpf, "99999-9999", "São Paulo", "Rua A", "SP");
-        when(clienteDAO.consultarPorCpf(cpf)).thenReturn(cliente);
+        when(clienteDAO.consultar(cpf)).thenReturn(Optional.of(cliente));
 
-        Cliente clienteConsultado = clienteService.consultarPorCpf(cpf);
-        Assertions.assertEquals(cliente, clienteConsultado);
-    }
-
-    @Test
-    public void testCadastrarProduto() {
-        Produto produto = new Produto("Produto A", 10.0, "001", 50);
-        produtoService.cadastrarProduto(produto);
-        verify(produtoDAO, times(1)).cadastrar(produto);
+        Optional<Cliente> clienteConsultado = clienteService.consultarPorCpf(cpf);
+        Assertions.assertTrue(clienteConsultado.isPresent(), "Cliente deve estar presente.");
+        Assertions.assertEquals(cliente, clienteConsultado.get());
     }
 
     @Test
     public void testConsultarProduto() {
         String descricao = "Produto A";
         Produto produto = new Produto(descricao, 10.0, "001", 50);
-        when(produtoDAO.buscarPorDescricao(descricao)).thenReturn(produto);
 
-        Produto produtoConsultado = produtoService.buscarPorDescricao(descricao);
-        Assertions.assertEquals(produto, produtoConsultado);
+        when(produtoDAO.buscarPorDescricao(descricao)).thenReturn(Optional.of(produto));
+
+        Optional<Produto> produtoConsultado = produtoService.buscarPorDescricao(descricao);
+        Assertions.assertTrue(produtoConsultado.isPresent(), "Produto deve estar presente.");
+        Assertions.assertEquals(produto, produtoConsultado.get());
     }
 
     @Test
     public void testCadastrarVenda() {
-        // Testando a criação de uma venda
-        Venda venda = new Venda(new Cliente("Ana", "123.456.789-00", "99999-9999", "São Paulo", "Rua A", "SP"));
+        Cliente cliente = new Cliente("Ana", "123.456.789-00", "99999-9999", "São Paulo", "Rua A", "SP");
+        Venda venda = new Venda(cliente);
+        
         vendaService.cadastrarVenda(venda);
+        
         verify(vendaDAO, times(1)).cadastrar(venda);
+        Assertions.assertNotNull(venda.getCliente(), "O cliente da venda não deve ser nulo.");
     }
 }

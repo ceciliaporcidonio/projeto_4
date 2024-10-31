@@ -5,9 +5,9 @@ import com.seu_projeto.produto.Produto;
 import com.seu_projeto.venda.ItemVenda;
 import com.seu_projeto.venda.Venda;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 
 public class JpaTest {
     public static void main(String[] args) {

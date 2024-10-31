@@ -21,6 +21,11 @@ public class ProdutoService {
         return Optional.ofNullable(produto);
     }
 
+    public Optional<Produto> consultarPorCodigo(String codigoProduto) {
+        Produto produto = produtoDAO.consultarPorCodigo(codigoProduto);
+        return Optional.ofNullable(produto);
+    }
+
     public void alterarProduto(Produto produto) {
         validarProduto(produto);
         produtoDAO.alterar(produto);

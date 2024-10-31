@@ -22,6 +22,11 @@ public class ProdutoDAOMemoria implements IProdutoDAO {
                 .findFirst()
                 .orElse(null);
     }
+    
+    @Override
+    public Produto consultarPorCodigo(String codigoProduto) {
+        return produtos.get(codigoProduto);
+    }
 
     @Override
     public void alterar(Produto produto) {

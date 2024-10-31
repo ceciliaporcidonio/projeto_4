@@ -36,6 +36,34 @@ public class ProdutoDAOPostgres implements IProdutoDAO {
     }
 
     @Override
+    public Produto consultarPorCodigo(String codigoProduto) {
+        String sql = "SELECT * FROM produto WHERE codigo_produto = ?";
+        Produto produto = null;
+
+        try (Connection connection = getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            stmt.setString(1, codigoProduto);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                produto = new Produto(
+                        rs.getInt("id"),
+                        rs.getString("descricao"),
+                        rs.getDouble("valor_unitario"),
+                        rs.getString("codigo_produto"),
+                        rs.getInt("estoque")
+                );
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar produto: " + e.getMessage(), e);
+        }
+
+        return produto;
+    }
+
+    @Override
     public Produto buscarPorDescricao(String descricao) {
         String sql = "SELECT * FROM produto WHERE descricao = ?";
         Produto produto = null;

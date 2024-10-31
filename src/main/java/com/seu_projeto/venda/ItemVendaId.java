@@ -2,12 +2,16 @@ package com.seu_projeto.venda;
 
 import java.io.Serializable;
 import java.util.Objects;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Column;
 
 @Embeddable
 public class ItemVendaId implements Serializable {
-    
+
+    @Column(name = "venda_id", nullable = false)
     private Integer vendaId;
+
+    @Column(name = "produto_id", nullable = false)
     private Integer produtoId;
 
     public ItemVendaId() {}

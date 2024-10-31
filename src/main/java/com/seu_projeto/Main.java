@@ -37,11 +37,10 @@ public class Main {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Ocorreu um erro: " + e.getMessage());
         }
     }
 
-    // Exibe o menu principal
     private static void exibirMenuPrincipal() {
         System.out.println("Escolha uma opção:");
         System.out.println("1. Gerenciar Cliente");
@@ -50,7 +49,6 @@ public class Main {
         System.out.println("4. Sair");
     }
 
-    // Lê a opção do usuário
     private static int lerOpcao(Scanner scanner) {
         while (!scanner.hasNextInt()) {
             System.out.println("Entrada inválida. Informe um número:");
@@ -93,7 +91,7 @@ public class Main {
         System.out.print("Informe a cidade do cliente: ");
         String cidade = scanner.next();
         System.out.print("Informe o endereço do cliente: ");
-        scanner.nextLine();
+        scanner.nextLine(); // Limpar o buffer
         String endereco = scanner.nextLine();
         System.out.print("Informe o estado do cliente: ");
         String estado = scanner.next();
@@ -107,8 +105,7 @@ public class Main {
         Optional<Cliente> clienteOptional = clienteService.consultarPorCpf(cpfConsulta);
 
         if (clienteOptional.isPresent()) {
-            Cliente cliente = clienteOptional.get();
-            System.out.println("Cliente encontrado: " + cliente);
+            System.out.println("Cliente encontrado: " + clienteOptional.get());
         } else {
             System.out.println("Cliente não encontrado.");
         }
@@ -141,7 +138,7 @@ public class Main {
         cliente.setCidade(scanner.next());
 
         System.out.print("Novo endereço: ");
-        scanner.nextLine();
+        scanner.nextLine(); // Limpar o buffer
         cliente.setEndereco(scanner.nextLine());
 
         System.out.print("Novo estado: ");
@@ -185,57 +182,36 @@ public class Main {
         System.out.print("Informe a descrição do produto: ");
         String descricao = scanner.next();
         System.out.print("Informe o valor unitário do produto: ");
-        double valorUnitario = lerDouble(scanner);
+        double valorUnitario = scanner.nextDouble();
         System.out.print("Informe o código do produto: ");
-        String codigoProduto = scanner.next();
-        System.out.print("Informe o estoque do produto: ");
-        int estoque = scanner.nextInt();
+        String codigo = scanner.next();
+        System.out.print("Informe a quantidade disponível: ");
+        int quantidade = scanner.nextInt();
 
-        return new Produto(null, descricao, valorUnitario, codigoProduto, estoque);
-    }
-
-    private static double lerDouble(Scanner scanner) {
-        while (!scanner.hasNextDouble()) {
-            System.out.println("Entrada inválida. Informe um número decimal válido:");
-            scanner.next();
-        }
-        return scanner.nextDouble();
+        return new Produto(descricao, valorUnitario, codigo, quantidade);
     }
 
     private static void consultarProduto(ProdutoService produtoService, Scanner scanner) {
-        System.out.print("Informe a descrição do produto: ");
-        String descricaoProduto = scanner.next();
-        Optional<Produto> produtoOptional = produtoService.buscarPorDescricao(descricaoProduto);
+        System.out.print("Informe o código do produto: ");
+        String codigo = scanner.next();
+        Optional<Produto> produtoOptional = produtoService.consultarPorCodigo(codigo);
 
         if (produtoOptional.isPresent()) {
-            Produto produto = produtoOptional.get();
-            System.out.println("Produto encontrado: " + produto);
+            System.out.println("Produto encontrado: " + produtoOptional.get());
         } else {
             System.out.println("Produto não encontrado.");
         }
     }
 
     private static void alterarProduto(ProdutoService produtoService, Scanner scanner) {
-        System.out.print("Informe a descrição do produto que deseja alterar: ");
-        String descricaoProduto = scanner.next();
-        Optional<Produto> produtoOptional = produtoService.buscarPorDescricao(descricaoProduto);
+        System.out.print("Informe o código do produto que deseja alterar: ");
+        String codigo = scanner.next();
+        Optional<Produto> produtoOptional = produtoService.consultarPorCodigo(codigo);
 
         if (produtoOptional.isPresent()) {
             Produto produto = produtoOptional.get();
-
-            System.out.print("Nova descrição: ");
-            String novaDescricao = scanner.next();
-
-            System.out.print("Novo valor unitário: ");
-            double novoValorUnitario = lerDouble(scanner);
-
-            System.out.print("Novo estoque: ");
-            int novoEstoque = scanner.nextInt();
-
-            produto.setDescricao(novaDescricao);
-            produto.setValorUnitario(novoValorUnitario);
-            produto.setEstoque(novoEstoque);
-
+            System.out.println("Alterando informações para o produto: " + produto.getDescricao());
+            produto = preencherDadosProduto(scanner, produto);
             produtoService.alterarProduto(produto);
             System.out.println("Produto alterado com sucesso.");
         } else {
@@ -243,80 +219,75 @@ public class Main {
         }
     }
 
+    private static Produto preencherDadosProduto(Scanner scanner, Produto produto) {
+        System.out.print("Nova descrição: ");
+        produto.setDescricao(scanner.next());
+
+        System.out.print("Novo valor unitário: ");
+        produto.setValorUnitario(scanner.nextDouble());
+
+        System.out.print("Novo código: ");
+        produto.setCodigoProduto(scanner.next());
+
+        System.out.print("Novo estoque: ");
+        produto.setEstoque(scanner.nextInt());
+
+        return produto;
+    }
+
     private static void excluirProduto(ProdutoService produtoService, Scanner scanner) {
-        System.out.print("Informe a descrição do produto que deseja excluir: ");
-        String descricaoProduto = scanner.next();
-        produtoService.excluirProduto(descricaoProduto);
+        System.out.print("Informe o código do produto que deseja excluir: ");
+        String codigo = scanner.next();
+        produtoService.excluirProduto(codigo);
         System.out.println("Produto excluído com sucesso.");
     }
 
     private static void gerenciarVenda(VendaService vendaService, ClienteService clienteService, ProdutoService produtoService, Scanner scanner) {
-        System.out.println("Venda: 1. Cadastrar Nova Venda 2. Consultar Venda por Nota Fiscal 3. Listar Todas as Vendas");
-        int opcao = lerOpcao(scanner);
-
-        switch (opcao) {
-            case 1 -> cadastrarVenda(vendaService, clienteService, produtoService, scanner);
-            case 2 -> consultarVenda(vendaService, scanner);
-            case 3 -> listarVendas(vendaService);
-            default -> System.out.println("Opção inválida. Tente novamente.");
-        }
-    }
-
-    private static void cadastrarVenda(VendaService vendaService, ClienteService clienteService, ProdutoService produtoService, Scanner scanner) {
+        System.out.print("Informe o número da nota fiscal: ");
+        int numeroNota = scanner.nextInt();
         System.out.print("Informe o CPF do cliente: ");
-        String cpf = scanner.next();
-        Optional<Cliente> clienteOptional = clienteService.consultarPorCpf(cpf);
+        String cpfCliente = scanner.next();
+        Optional<Cliente> clienteOptional = clienteService.consultarPorCpf(cpfCliente);
 
         if (clienteOptional.isPresent()) {
-            Cliente cliente = clienteOptional.get();
+            Venda venda = new Venda(numeroNota, clienteOptional.get());
 
-            System.out.print("Informe a descrição do produto: ");
-            String descricaoProduto = scanner.next();
-            Optional<Produto> produtoOptional = produtoService.buscarPorDescricao(descricaoProduto);
-
-            if (produtoOptional.isPresent()) {
-                Produto produto = produtoOptional.get();
-
-                System.out.print("Informe a quantidade: ");
-                int quantidade = scanner.nextInt();
-
-                if (produto.getEstoque() >= quantidade) {
-                	Venda venda = new Venda(cliente);
-                	ItemVenda itemVenda = new ItemVenda(venda, produto, quantidade); // Adiciona 'venda' como primeiro parâmetro
-                	venda.adicionarItem(itemVenda); // Adiciona o item à venda
-
-
-                    vendaService.cadastrarVenda(venda);
-                    produto.setEstoque(produto.getEstoque() - quantidade);
-                    produtoService.alterarProduto(produto);
-
-                    System.out.println("Venda realizada com sucesso.");
+            while (true) {
+                System.out.println("Adicionar produto à venda? (1. Sim / 2. Não)");
+                int opcao = lerOpcao(scanner);
+                if (opcao == 1) {
+                    adicionarProdutoAVenda(produtoService, venda, scanner);
                 } else {
-                    System.out.println("Estoque insuficiente.");
+                    break;
                 }
-            } else {
-                System.out.println("Produto não encontrado.");
             }
+
+            vendaService.cadastrarVenda(venda);
+            System.out.println("Venda realizada com sucesso!");
+            System.out.println("Nota Fiscal:\n" + venda.gerarNotaFiscal());
         } else {
             System.out.println("Cliente não encontrado.");
         }
     }
 
-    private static void consultarVenda(VendaService vendaService, Scanner scanner) {
-        System.out.print("Informe o número da nota fiscal: ");
-        String numeroNotaFiscal = scanner.next();
-        Optional<Venda> vendaOptional = vendaService.buscarPorNumero(numeroNotaFiscal);
+    private static void adicionarProdutoAVenda(ProdutoService produtoService, Venda venda, Scanner scanner) {
+        System.out.print("Informe o código do produto: ");
+        String codigoProduto = scanner.next();
+        Optional<Produto> produtoOptional = produtoService.consultarPorCodigo(codigoProduto);
 
-        if (vendaOptional.isPresent()) {
-            Venda venda = vendaOptional.get();
-            venda.gerarNotaFiscal();
+        if (produtoOptional.isPresent()) {
+            Produto produto = produtoOptional.get();
+            System.out.print("Informe a quantidade: ");
+            int quantidade = scanner.nextInt();
+
+            if (quantidade <= produto.getEstoque()) {
+                venda.adicionarProduto(produto, quantidade); // ajuste aqui para adicionar corretamente o produto na venda
+                System.out.println("Produto adicionado à venda.");
+            } else {
+                System.out.println("Quantidade insuficiente em estoque.");
+            }
         } else {
-            System.out.println("Venda não encontrada.");
+            System.out.println("Produto não encontrado.");
         }
-    }
-
-    private static void listarVendas(VendaService vendaService) {
-        System.out.println("Lista de todas as vendas:");
-        vendaService.listarTodasVendas().forEach(Venda::gerarNotaFiscal);
     }
 }

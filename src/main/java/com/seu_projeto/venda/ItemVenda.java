@@ -1,8 +1,8 @@
+// ItemVenda.java
 package com.seu_projeto.venda;
 
 import com.seu_projeto.produto.Produto;
-
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 
 @Entity
@@ -34,7 +34,7 @@ public class ItemVenda implements Serializable {
         this.venda = venda;
         this.produto = produto;
         this.quantidade = quantidade;
-        this.id = new ItemVendaId(venda.getNumeroNotaFiscal(), produto.getId()); // Inicialize ItemVendaId
+        this.id = new ItemVendaId(venda.getNumeroNotaFiscal(), produto.getId());
         this.valorTotal = calcularValorTotal();
     }
 
@@ -56,6 +56,8 @@ public class ItemVenda implements Serializable {
 
     public void setVenda(Venda venda) {
         this.venda = venda;
+        this.id = new ItemVendaId(venda.getNumeroNotaFiscal(), this.produto.getId()); // Atualiza o ID se a venda mudar
+        this.valorTotal = calcularValorTotal(); // Recalcule o valor total se a venda mudar
     }
 
     public Produto getProduto() {
@@ -64,6 +66,8 @@ public class ItemVenda implements Serializable {
 
     public void setProduto(Produto produto) {
         this.produto = produto;
+        this.id = new ItemVendaId(this.venda.getNumeroNotaFiscal(), produto.getId()); // Atualiza o ID se o produto mudar
+        this.valorTotal = calcularValorTotal(); // Recalcule o valor total se o produto mudar
     }
 
     public int getQuantidade() {
@@ -72,13 +76,16 @@ public class ItemVenda implements Serializable {
 
     public void setQuantidade(int quantidade) {
         this.quantidade = quantidade;
+        this.valorTotal = calcularValorTotal(); // Recalcule o valor total se a quantidade mudar
     }
 
     public double getValorTotal() {
         return valorTotal;
     }
 
-    public void setValorTotal(double valorTotal) {
-        this.valorTotal = valorTotal;
+    @Override
+    public String toString() {
+        return String.format("ItemVenda{venda=%d, produto=%d, quantidade=%d, valorTotal=%.2f}", 
+                venda.getNumeroNotaFiscal(), produto.getId(), quantidade, valorTotal);
     }
 }
